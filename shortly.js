@@ -23,9 +23,30 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 
+// Helper functions
+
+var checkUser = function(res){
+  //check if current user in session (if loged in == false)
+  //if false do redirect
+  return res.redirect('/login');
+};
+
+
+
 app.get('/', 
 function(req, res) {
+  /////// IF USER NOT LOGGED IN, REDIRECT TO LOGIN PAGE
   res.render('index');
+});
+
+app.get('/login', 
+function(req, res) {
+  res.render('login');
+});
+
+app.get('/signup', 
+function(req, res) {
+  res.render('signup');
 });
 
 app.get('/create', 
