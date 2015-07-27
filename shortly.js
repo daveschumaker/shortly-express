@@ -35,12 +35,14 @@ var checkUser = function(res){
 
 app.get('/', 
 function(req, res) {
+  checkUser(res);
   /////// IF USER NOT LOGGED IN, REDIRECT TO LOGIN PAGE
   res.render('index');
 });
 
 app.get('/login', 
 function(req, res) {
+
   res.render('login');
 });
 
@@ -51,11 +53,13 @@ function(req, res) {
 
 app.get('/create', 
 function(req, res) {
+  checkUser(res);
   res.render('index');
 });
 
 app.get('/links', 
 function(req, res) {
+  checkUser(res);
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
