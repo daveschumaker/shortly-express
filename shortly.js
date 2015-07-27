@@ -43,7 +43,7 @@ function(req, res) {
 app.post('/links', 
 function(req, res) {
   var uri = req.body.url;
-
+  // console.log(uri);
   if (!util.isValidUrl(uri)) {
     console.log('Not a valid url: ', uri);
     return res.send(404);
@@ -51,6 +51,7 @@ function(req, res) {
 
   new Link({ url: uri }).fetch().then(function(found) {
     if (found) {
+      // console.log(found.attributes);
       res.send(200, found.attributes);
     } else {
       util.getUrlTitle(uri, function(err, title) {
@@ -66,6 +67,8 @@ function(req, res) {
         });
 
         link.save().then(function(newLink) {
+          console.log('Added new link!');
+          link.getCode();
           Links.add(newLink);
           res.send(200, newLink);
         });
