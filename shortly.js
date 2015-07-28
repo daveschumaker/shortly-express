@@ -19,8 +19,8 @@ var sessionCounter = 0;
 // Setting up sessions
 app.use(session({
   resave: false,
-  saveUninitialized: false,
-  secret: 'keyboard cat'
+  saveUninitialized: true,
+  secret: 'This is a key that Dave and Mila wrote. No one will ever guess it.'
 }));
 
 app.set('views', __dirname + '/views');
@@ -32,65 +32,24 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
-// Helper functions
-
-var checkUser = function(req, res){
-  // check if current user in session (if loged in == false)
-  // if false do redirect
-  // console.log("REQ SESSION ID", req.sessionID);
-  if(req.session.loggedIn === true){ 
-  } else {
-    console.log(req.session);
-    return res.redirect('/login');
-  }
-};
-
 ////////////////////////////
 // ROUTER FOR GET REQUESTS
 ////////////////////////////
 
-app.get('/', 
-function(req, res) {
-  checkUser(req, res); // Check if user is logged in. 
-
+app.get('/', util.checkUser, function(req, res) {
   // Otherwise, render our index page.
   res.render('index');
 });
 
-app.get('/login', 
-function(req, res) {
-  res.render('login');
-});
-
-app.get('/signup', 
-function(req, res) {
-  res.render('signup');
-});
-
-app.get('/create', 
-function(req, res) {
-  checkUser(req, res); // Check if user is logged in. 
+app.get('/create', util.checkUser, function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
-  checkUser(req, res);
+app.get('/links', util.checkUser, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
-
-//////////////////////////
-// LOG OUT
-/////////////////////////
-
-app.get('/logout',
-function(req, res) {
-  req.session.loggedIn =false;
-  res.redirect('/login');
-}
-);
 
 //////////////////////////
 // USER SIGNUP
@@ -101,49 +60,23 @@ app.post('/signup', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
  
-  new User({ username: username}).fetch().then(function(found) {
-      if (found) {
-        // console.log(found.attributes);
-        res.send(200, found.attributes);
-      } else {
-        var user = new User({
+  new User({ username: username}).fetch().then(function(user) {
+      if (!user) {
+        var newUser = new User({
           username: username,
           // TODO: add salt
           password: password 
         });
 
-        user.save().then(function(newUser) {
-          console.log('Added new USER!');
-          Users.add(newUser);
-          res.redirect(301, '/');
+        newUser.save().then(function(savedUser) {
+          util.createSession(req, res, savedUser);
         });
-      }
-    });
-
-});
-
-
-//////////////////////////
-// LOG IN
-/////////////////////////
-
-app.post('/login', function(req, res) {
-  var username = req.body.username;
-  var password = req.body.password;
- 
-  new User({ username: username, password: password}).fetch().then(function(found) {
-      if (found) {
-        // console.log('FOUND USER: ' + username + ' ' + password);
-        // console.log('------>Session saved!');
-        // console.log("REQ SESSION ID", req.sessionID);
-        req.session.loggedIn = true;
-        // console.log(req.session);
-        res.redirect(301, '/');
       } else {
-        console.log("wrong username or password");
-         res.redirect(301, '/login');
+        console.log('Account already exists!');
+        res.redirect('/signup');
       }
     });
+
 });
 
 //////////////////////////
@@ -191,7 +124,40 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 
+app.get('/login', function(req, res) {
+  res.render('login');
+});
 
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
+
+app.get('/logout', function(req, res) {
+  req.session.destroy(function() {
+    res.redirect('/login');
+  })
+});
+
+app.post('/login', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+ 
+  new User({ username: username, password: password})
+    .fetch().then(function(user) {
+      if (user) {
+        // console.log('FOUND USER: ' + username + ' ' + password);
+        // console.log('------>Session saved!');
+        // console.log("REQ SESSION ID", req.sessionID);
+        //req.session.user = user;
+        // console.log(req.session);
+        //util.createSession
+        util.createSession(req, res, user);
+      } else {
+        console.log("wrong username or password");
+         res.redirect(301, '/login');
+      }
+    });
+});
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
