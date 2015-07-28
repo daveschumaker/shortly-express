@@ -3,7 +3,6 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
-var cookieParser = require('cookie-parser')
 
 
 var db = require('./app/config');
@@ -15,15 +14,12 @@ var Click = require('./app/models/click');
 
 var app = express();
 
+var sessionCounter = 0;
+
 // Setting up sessions
-app.use(cookieParser());
 app.use(session({
-  resave: true,
-  saveUninitialized: true,
-  genid: function() {
-    console.log(genuuid(req));
-    return genuuid() // use UUIDs for session IDs 
-  },
+  resave: false,
+  saveUninitialized: false,
   secret: 'keyboard cat'
 }));
 
@@ -36,13 +32,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
-
 // Helper functions
 
-var checkUser = function(res){
+var checkUser = function(req, res){
   // check if current user in session (if loged in == false)
   // if false do redirect
-  // return res.redirect('/login');
+  // console.log("REQ SESSION ID", req.sessionID);
+  if(req.session.loggedIn === true){ 
+  } else {
+    console.log(req.session);
+    return res.redirect('/login');
+  }
 };
 
 //////////////////////////
@@ -51,7 +51,14 @@ var checkUser = function(res){
 
 app.get('/', 
 function(req, res) {
-  checkUser(res);
+  console.log(req.session)
+  if(req.sessionID){
+    console.log("REQ SESSION ID", req.sessionID);
+  }
+  // 
+  // req.session.name = "Hi MIla";
+  // console.log(req.session);
+  checkUser(req, res);
   /////// IF USER NOT LOGGED IN, REDIRECT TO LOGIN PAGE
   res.render('index');
 });
@@ -69,13 +76,13 @@ function(req, res) {
 
 app.get('/create', 
 function(req, res) {
-  checkUser(res);
+  checkUser(req, res);
   res.render('index');
 });
 
 app.get('/links', 
 function(req, res) {
-  checkUser(res);
+  checkUser(req, res);
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
@@ -130,7 +137,18 @@ app.post('/login', function(req, res) {
       if (found) {
         console.log('FOUND USER: ' + username + ' ' + password);
         // res.json({location: '/'});
-        res.redirect(301, '/');
+        //req.session.save(function(err) {
+          console.log('------>Session saved!');
+          console.log("REQ SESSION ID", req.sessionID);
+          req.session.loggedIn = true;
+          console.log(req.session);
+
+          res.redirect(301, '/');
+          
+        //});
+         //// <---- THIS IS THE ANSWER! i think
+        // console.log(req.session);
+
       } else {
         console.log("wrong username or password");
          res.redirect(301, '/login');
