@@ -4,7 +4,6 @@ var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
-
 var db = require('./app/config');
 var Users = require('./app/collections/users');
 var User = require('./app/models/user');
@@ -64,7 +63,6 @@ app.post('/signup', function(req, res) {
       if (!user) {
         var newUser = new User({
           username: username,
-          // TODO: add salt
           password: password 
         });
 
@@ -142,19 +140,19 @@ app.post('/login', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
  
-  new User({ username: username, password: password})
+  new User({ username: username})
     .fetch().then(function(user) {
-      if (user) {
-        // console.log('FOUND USER: ' + username + ' ' + password);
-        // console.log('------>Session saved!');
-        // console.log("REQ SESSION ID", req.sessionID);
-        //req.session.user = user;
-        // console.log(req.session);
-        //util.createSession
-        util.createSession(req, res, user);
-      } else {
+      if (!user) {
         console.log("wrong username or password");
-         res.redirect(301, '/login');
+        res.redirect('/login');
+      } else {
+        user.comparePassword(password, function(match) {
+          if (match) {
+            util.createSession(req, res, user);
+          } else {
+            res.redirect('/login');
+          }
+        });
       }
     });
 });
