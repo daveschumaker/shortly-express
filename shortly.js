@@ -2,6 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
+var cookieParser = require('cookie-parser')
 
 
 var db = require('./app/config');
@@ -12,6 +14,18 @@ var Link = require('./app/models/link');
 var Click = require('./app/models/click');
 
 var app = express();
+
+// Setting up sessions
+app.use(cookieParser());
+app.use(session({
+  resave: true,
+  saveUninitialized: true,
+  genid: function() {
+    console.log(genuuid(req));
+    return genuuid() // use UUIDs for session IDs 
+  },
+  secret: 'keyboard cat'
+}));
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -26,8 +40,8 @@ app.use(express.static(__dirname + '/public'));
 // Helper functions
 
 var checkUser = function(res){
-  //check if current user in session (if loged in == false)
-  //if false do redirect
+  // check if current user in session (if loged in == false)
+  // if false do redirect
   // return res.redirect('/login');
 };
 
