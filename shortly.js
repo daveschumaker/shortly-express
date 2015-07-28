@@ -73,22 +73,19 @@ function(req, res) {
 
 app.post('/signup', function(req, res) {
   // WHERE ALL THE SIGNUP STUFF HAPPENS!
-  var user = req.body.username;
+  var username = req.body.username;
   var password = req.body.password;
  
 
   // console.log(new User({"username": "dave"}).fetch());  
 
-  new User({ username: user}).fetch().then(function(found) {
-    console.log("FOUND", found);
+  new User({ username: username}).fetch().then(function(found) {
       if (found) {
         // console.log(found.attributes);
         res.send(200, found.attributes);
       } else {
-
-
         var user = new User({
-          username: user,
+          username: username,
           // TODO: add salt
           password: password 
         });
@@ -96,12 +93,37 @@ app.post('/signup', function(req, res) {
         user.save().then(function(newUser) {
           console.log('Added new USER!');
           Users.add(newUser);
-          res.send(200, newUser);
+          res.redirect(301, '/');
         });
       }
     });
 
 });
+
+
+//////////////////////////
+// LOG IN
+/////////////////////////
+
+app.post('/login', function(req, res) {
+  // WHERE ALL THE LOG IN STUFF HAPPENS (ohhhhh yeah)!
+  var username = req.body.username;
+  var password = req.body.password;
+ 
+  // console.log(new User({"username": "dave"}).fetch());  
+  // console.log(res.headers);
+  new User({ username: username, password: password}).fetch().then(function(found) {
+      if (found) {
+        console.log('FOUND USER: ' + username + ' ' + password);
+        // res.json({location: '/'});
+        res.redirect(301, '/');
+      } else {
+        console.log("wrong username or password");
+         res.redirect(301, '/login');
+      }
+    });
+});
+
 
 
 
