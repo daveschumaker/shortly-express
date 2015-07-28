@@ -88,6 +88,13 @@ function(req, res) {
   });
 });
 
+app.get('/logout',
+function(req, res) {
+  req.session.loggedIn =false;
+  res.redirect('/login');
+}
+);
+
 //////////////////////////
 // POST STUFF
 //////////////////////////
@@ -182,6 +189,7 @@ function(req, res) {
         var link = new Link({
           url: uri,
           title: title,
+          //user_id: ///req.session.userID???
           base_url: req.headers.origin
         });
 

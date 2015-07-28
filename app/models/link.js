@@ -1,5 +1,6 @@
 var db = require('../config');
 var Click = require('./click');
+var User = require('./user');
 var crypto = require('crypto');
 
 var Link = db.Model.extend({
@@ -22,6 +23,9 @@ var Link = db.Model.extend({
   getCode: function() {
     console.log('HEY');
     console.log(this.get('code'));
+  },
+  users: function() {
+    return this.belongsTo(User, 'user_id');
   }
 
 });

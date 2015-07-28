@@ -21,6 +21,7 @@ db.knex.schema.hasTable('urls').then(function(exists) {
       link.string('base_url', 255);
       link.string('code', 100);
       link.string('title', 255);
+      link.integer('user_id');
       link.integer('visits');
       link.timestamps();
     }).then(function (table) {
@@ -47,7 +48,8 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
 db.knex.schema.hasTable('users').then(function(exists) {
   if (!exists) {
     db.knex.schema.createTable('users', function (user) {
-      user.string('username', 20).primary();
+      user.increments('id'),
+      user.string('username', 20);
       user.string('password', 255);
       user.string('salt', 255);
       user.timestamps();
@@ -56,5 +58,6 @@ db.knex.schema.hasTable('users').then(function(exists) {
     });
   }
 });
+
 
 module.exports = db;
