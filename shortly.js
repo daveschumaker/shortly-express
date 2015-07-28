@@ -28,10 +28,12 @@ app.use(express.static(__dirname + '/public'));
 var checkUser = function(res){
   //check if current user in session (if loged in == false)
   //if false do redirect
-  return res.redirect('/login');
+  // return res.redirect('/login');
 };
 
-
+//////////////////////////
+// GET STUFF
+//////////////////////////
 
 app.get('/', 
 function(req, res) {
@@ -64,6 +66,44 @@ function(req, res) {
     res.send(200, links.models);
   });
 });
+
+//////////////////////////
+// POST STUFF
+//////////////////////////
+
+app.post('/signup', function(req, res) {
+  // WHERE ALL THE SIGNUP STUFF HAPPENS!
+  var user = req.body.username;
+  var password = req.body.password;
+ 
+
+  // console.log(new User({"username": "dave"}).fetch());  
+
+  new User({ username: user}).fetch().then(function(found) {
+    console.log("FOUND", found);
+      if (found) {
+        // console.log(found.attributes);
+        res.send(200, found.attributes);
+      } else {
+
+
+        var user = new User({
+          username: user,
+          // TODO: add salt
+          password: password 
+        });
+
+        user.save().then(function(newUser) {
+          console.log('Added new USER!');
+          Users.add(newUser);
+          res.send(200, newUser);
+        });
+      }
+    });
+
+});
+
+
 
 app.post('/links', 
 function(req, res) {
