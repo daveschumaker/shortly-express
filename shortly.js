@@ -45,27 +45,20 @@ var checkUser = function(req, res){
   }
 };
 
-//////////////////////////
-// GET STUFF
-//////////////////////////
+////////////////////////////
+// ROUTER FOR GET REQUESTS
+////////////////////////////
 
 app.get('/', 
 function(req, res) {
-  console.log(req.session)
-  if(req.sessionID){
-    console.log("REQ SESSION ID", req.sessionID);
-  }
-  // 
-  // req.session.name = "Hi MIla";
-  // console.log(req.session);
-  checkUser(req, res);
-  /////// IF USER NOT LOGGED IN, REDIRECT TO LOGIN PAGE
+  checkUser(req, res); // Check if user is logged in. 
+
+  // Otherwise, render our index page.
   res.render('index');
 });
 
 app.get('/login', 
 function(req, res) {
-
   res.render('login');
 });
 
@@ -76,7 +69,7 @@ function(req, res) {
 
 app.get('/create', 
 function(req, res) {
-  checkUser(req, res);
+  checkUser(req, res); // Check if user is logged in. 
   res.render('index');
 });
 
@@ -88,6 +81,10 @@ function(req, res) {
   });
 });
 
+//////////////////////////
+// LOG OUT
+/////////////////////////
+
 app.get('/logout',
 function(req, res) {
   req.session.loggedIn =false;
@@ -96,7 +93,7 @@ function(req, res) {
 );
 
 //////////////////////////
-// POST STUFF
+// USER SIGNUP
 //////////////////////////
 
 app.post('/signup', function(req, res) {
@@ -104,9 +101,6 @@ app.post('/signup', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
  
-
-  // console.log(new User({"username": "dave"}).fetch());  
-
   new User({ username: username}).fetch().then(function(found) {
       if (found) {
         // console.log(found.attributes);
@@ -134,28 +128,17 @@ app.post('/signup', function(req, res) {
 /////////////////////////
 
 app.post('/login', function(req, res) {
-  // WHERE ALL THE LOG IN STUFF HAPPENS (ohhhhh yeah)!
   var username = req.body.username;
   var password = req.body.password;
  
-  // console.log(new User({"username": "dave"}).fetch());  
-  // console.log(res.headers);
   new User({ username: username, password: password}).fetch().then(function(found) {
       if (found) {
-        console.log('FOUND USER: ' + username + ' ' + password);
-        // res.json({location: '/'});
-        //req.session.save(function(err) {
-          console.log('------>Session saved!');
-          console.log("REQ SESSION ID", req.sessionID);
-          req.session.loggedIn = true;
-          console.log(req.session);
-
-          res.redirect(301, '/');
-          
-        //});
-         //// <---- THIS IS THE ANSWER! i think
+        // console.log('FOUND USER: ' + username + ' ' + password);
+        // console.log('------>Session saved!');
+        // console.log("REQ SESSION ID", req.sessionID);
+        req.session.loggedIn = true;
         // console.log(req.session);
-
+        res.redirect(301, '/');
       } else {
         console.log("wrong username or password");
          res.redirect(301, '/login');
@@ -163,13 +146,13 @@ app.post('/login', function(req, res) {
     });
 });
 
-
-
+//////////////////////////
+// LINKS
+/////////////////////////
 
 app.post('/links', 
 function(req, res) {
   var uri = req.body.url;
-  // console.log(uri);
   if (!util.isValidUrl(uri)) {
     console.log('Not a valid url: ', uri);
     return res.send(404);
